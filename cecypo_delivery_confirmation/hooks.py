@@ -5,6 +5,11 @@ app_description = "Confirm delivery status using a QR code"
 app_email = "support@cecypo.tech"
 app_license = "mit"
 
+# Fixtures – imported on bench migrate
+fixtures = [
+	{"dt": "Role", "filters": [["role_name", "=", "Delivery Scanner"]]},
+]
+
 # Apps
 # ------------------
 

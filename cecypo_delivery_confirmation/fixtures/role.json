@@ -1,0 +1,9 @@
+[
+ {
+  "doctype": "Role",
+  "name": "Delivery Scanner",
+  "role_name": "Delivery Scanner",
+  "desk_access": 0,
+  "is_custom": 1
+ }
+]

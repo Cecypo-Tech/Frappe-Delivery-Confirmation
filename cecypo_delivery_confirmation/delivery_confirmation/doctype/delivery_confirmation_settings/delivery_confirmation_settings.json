@@ -1,0 +1,113 @@
+{
+ "actions": [],
+ "creation": "2026-03-18 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_matching",
+  "source_doctype",
+  "match_field",
+  "column_break_matching",
+  "qr_extract_method",
+  "qr_url_param",
+  "qr_regex_pattern",
+  "section_break_notification",
+  "send_notification_on_duplicate",
+  "section_break_recipients",
+  "notification_recipients"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_matching",
+   "fieldtype": "Section Break",
+   "label": "Document Matching"
+  },
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Link",
+   "label": "Source DocType",
+   "options": "DocType",
+   "reqd": 0,
+   "description": "The DocType to search when a QR code is scanned (e.g. Sales Invoice)"
+  },
+  {
+   "fieldname": "match_field",
+   "fieldtype": "Data",
+   "label": "Match Field",
+   "description": "Field name in the Source DocType whose value is extracted from the QR (e.g. etr_invoice_number)"
+  },
+  {
+   "fieldname": "column_break_matching",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "qr_extract_method",
+   "fieldtype": "Select",
+   "label": "QR Value Extraction Method",
+   "options": "\nURL Parameter\nRegex\nFull String",
+   "description": "How to extract the matching value from the raw QR code string"
+  },
+  {
+   "fieldname": "qr_url_param",
+   "fieldtype": "Data",
+   "label": "URL Parameter Name",
+   "depends_on": "eval:doc.qr_extract_method === 'URL Parameter'",
+   "description": "Query-string parameter to read (e.g. invoiceNo extracts 999555 from ?invoiceNo=999555)"
+  },
+  {
+   "fieldname": "qr_regex_pattern",
+   "fieldtype": "Data",
+   "label": "Regex Pattern",
+   "depends_on": "eval:doc.qr_extract_method === 'Regex'",
+   "description": "Regex with one capture group. The first group match is used (e.g. invoiceNo=(\\w+))"
+  },
+  {
+   "fieldname": "section_break_notification",
+   "fieldtype": "Section Break",
+   "label": "Duplicate Scan Notifications"
+  },
+  {
+   "fieldname": "send_notification_on_duplicate",
+   "fieldtype": "Check",
+   "label": "Send Notification on Duplicate Scan"
+  },
+  {
+   "fieldname": "section_break_recipients",
+   "fieldtype": "Section Break",
+   "label": "Notification Recipients",
+   "depends_on": "eval:doc.send_notification_on_duplicate"
+  },
+  {
+   "fieldname": "notification_recipients",
+   "fieldtype": "Table",
+   "label": "Notification Recipients",
+   "options": "Delivery Confirmation Notification Recipient",
+   "depends_on": "eval:doc.send_notification_on_duplicate"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-03-18 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Delivery Confirmation",
+ "name": "Delivery Confirmation Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 0,
+   "export": 0,
+   "print": 0,
+   "read": 1,
+   "report": 0,
+   "role": "System Manager",
+   "share": 0,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
