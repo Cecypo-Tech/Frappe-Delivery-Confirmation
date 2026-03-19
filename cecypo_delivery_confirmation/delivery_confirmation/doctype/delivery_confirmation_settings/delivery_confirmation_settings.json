@@ -5,6 +5,8 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "section_break_access",
+  "allow_guest_access",
   "section_break_matching",
   "source_doctype",
   "match_field",
@@ -18,6 +20,17 @@
   "notification_recipients"
  ],
  "fields": [
+  {
+   "fieldname": "section_break_access",
+   "fieldtype": "Section Break",
+   "label": "Access"
+  },
+  {
+   "fieldname": "allow_guest_access",
+   "fieldtype": "Check",
+   "label": "Allow Guest Access",
+   "description": "When enabled, the /delivery page is accessible without logging in. When disabled, unauthenticated users are redirected to the login page."
+  },
   {
    "fieldname": "section_break_matching",
    "fieldtype": "Section Break",
