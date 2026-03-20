@@ -17,7 +17,12 @@
   "section_break_notification",
   "send_notification_on_duplicate",
   "section_break_recipients",
-  "notification_recipients"
+  "notification_recipients",
+  "section_break_client_notification",
+  "send_notification_to_client",
+  "client_email_field",
+  "client_notification_subject",
+  "client_notification_message"
  ],
  "fields": [
   {
@@ -97,11 +102,43 @@
    "label": "Notification Recipients",
    "options": "Delivery Confirmation Notification Recipient",
    "depends_on": "eval:doc.send_notification_on_duplicate"
+  },
+  {
+   "fieldname": "section_break_client_notification",
+   "fieldtype": "Section Break",
+   "label": "Client Notification (on First Scan)"
+  },
+  {
+   "fieldname": "send_notification_to_client",
+   "fieldtype": "Check",
+   "label": "Send Notification to Client on Delivery",
+   "description": "When enabled, an email notification is sent to the client contact fetched from the scanned document."
+  },
+  {
+   "fieldname": "client_email_field",
+   "fieldtype": "Data",
+   "label": "Client Email Field",
+   "depends_on": "eval:doc.send_notification_to_client",
+   "description": "Field name on the Source DocType that holds the client's email address (e.g. contact_email)"
+  },
+  {
+   "fieldname": "client_notification_subject",
+   "fieldtype": "Data",
+   "label": "Email Subject",
+   "depends_on": "eval:doc.send_notification_to_client",
+   "description": "Subject line for the client notification email. You may use {doc_name} as a placeholder."
+  },
+  {
+   "fieldname": "client_notification_message",
+   "fieldtype": "Text Editor",
+   "label": "Email Message",
+   "depends_on": "eval:doc.send_notification_to_client",
+   "description": "Body of the client notification email. Placeholders: {doc_type}, {doc_name}, {delivered_to_name}, {scanned_at}."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-03-18 00:00:00.000000",
+ "modified": "2026-03-19 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Delivery Confirmation",
  "name": "Delivery Confirmation Settings",

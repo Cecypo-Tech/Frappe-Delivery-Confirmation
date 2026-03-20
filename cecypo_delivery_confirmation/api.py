@@ -76,28 +76,39 @@ def get_confirmation_status(doc_type, doc_name):
 	"""
 	Check if a delivery has already been confirmed for this document.
 	Returns status 'confirmed' with details, or 'pending'.
-	Also triggers a duplicate-scan notification when already confirmed.
+	On duplicate scan: increments scan_count, appends to scan_log, and sends notifications.
 	"""
-	existing = frappe.db.get_value(
+	existing_name = frappe.db.get_value(
 		"Delivery Confirmation",
 		{"document_type": doc_type, "document_name": doc_name, "status": "First Scan"},
-		[
-			"name",
-			"scanned_by",
-			"scanned_at",
-			"delivered_to_name",
-			"delivered_to_id",
-			"delivered_to_phone",
-			"number_plate",
-			"other_info",
-			"photo",
-		],
-		as_dict=True,
+		"name",
 	)
 
-	if existing:
-		_send_duplicate_notification(doc_type, doc_name, existing)
-		return {"status": "confirmed", "confirmation": existing}
+	if existing_name:
+		dc_doc = frappe.get_doc("Delivery Confirmation", existing_name)
+		dc_doc.scan_count = (dc_doc.scan_count or 1) + 1
+		dc_doc.append("scan_log", {
+			"scanned_by": frappe.session.user,
+			"scanned_at": frappe.utils.now_datetime(),
+		})
+		dc_doc.save(ignore_permissions=True)
+
+		_send_duplicate_notification(doc_type, doc_name, dc_doc)
+		return {
+			"status": "confirmed",
+			"confirmation": {
+				"name": dc_doc.name,
+				"scanned_by": dc_doc.scanned_by,
+				"scanned_at": dc_doc.scanned_at,
+				"delivered_to_name": dc_doc.delivered_to_name,
+				"delivered_to_id": dc_doc.delivered_to_id,
+				"delivered_to_phone": dc_doc.delivered_to_phone,
+				"number_plate": dc_doc.number_plate,
+				"other_info": dc_doc.other_info,
+				"photo": dc_doc.photo,
+				"scan_count": dc_doc.scan_count,
+			},
+		}
 
 	return {"status": "pending"}
 
@@ -121,24 +132,33 @@ def submit_delivery_confirmation(
 	if existing:
 		frappe.throw(_("This delivery has already been confirmed."))
 
+	now = frappe.utils.now_datetime()
+
 	doc = frappe.new_doc("Delivery Confirmation")
 	doc.document_type = doc_type
 	doc.document_name = doc_name
 	doc.status = "First Scan"
+	doc.scan_count = 1
 	doc.scanned_by = frappe.session.user  # "Guest" for unauthenticated users
-	doc.scanned_at = frappe.utils.now_datetime()
+	doc.scanned_at = now
 	doc.delivered_to_name = delivered_to_name
 	doc.delivered_to_id = delivered_to_id
 	doc.delivered_to_phone = delivered_to_phone
 	doc.number_plate = number_plate
 	doc.other_info = other_info
 	doc.photo = photo
+	doc.append("scan_log", {
+		"scanned_by": frappe.session.user,
+		"scanned_at": now,
+	})
 	doc.insert(ignore_permissions=True)
+
+	_send_client_notification(doc_type, doc_name, doc)
 
 	return {"name": doc.name, "status": "success"}
 
 
-def _send_duplicate_notification(doc_type, doc_name, original):
+def _send_duplicate_notification(doc_type, doc_name, dc_doc):
 	"""Send email notification to configured recipients when a duplicate scan is detected."""
 	try:
 		settings = frappe.get_single("Delivery Confirmation Settings")
@@ -149,7 +169,7 @@ def _send_duplicate_notification(doc_type, doc_name, original):
 		if not recipients:
 			return
 
-		scanned_at = frappe.utils.format_datetime(original.scanned_at) if original.scanned_at else "N/A"
+		scanned_at = frappe.utils.format_datetime(dc_doc.scanned_at) if dc_doc.scanned_at else "N/A"
 
 		subject = f"\u26a0\ufe0f Duplicate QR Scan: {doc_type} \u2013 {doc_name}"
 		message = f"""
@@ -161,8 +181,12 @@ def _send_duplicate_notification(doc_type, doc_name, original):
     <td style="padding:8px 12px;border:1px solid #fca5a5;">{doc_type} &ndash; {doc_name}</td>
   </tr>
   <tr>
+    <td style="padding:8px 12px;border:1px solid #e5e7eb;font-weight:600;">Scan Count</td>
+    <td style="padding:8px 12px;border:1px solid #e5e7eb;">{dc_doc.scan_count}</td>
+  </tr>
+  <tr>
     <td style="padding:8px 12px;border:1px solid #e5e7eb;font-weight:600;">Originally Confirmed By</td>
-    <td style="padding:8px 12px;border:1px solid #e5e7eb;">{original.scanned_by or "N/A"}</td>
+    <td style="padding:8px 12px;border:1px solid #e5e7eb;">{dc_doc.scanned_by or "N/A"}</td>
   </tr>
   <tr>
     <td style="padding:8px 12px;border:1px solid #e5e7eb;font-weight:600;">Originally Confirmed At</td>
@@ -170,15 +194,15 @@ def _send_duplicate_notification(doc_type, doc_name, original):
   </tr>
   <tr>
     <td style="padding:8px 12px;border:1px solid #e5e7eb;font-weight:600;">Delivered To</td>
-    <td style="padding:8px 12px;border:1px solid #e5e7eb;">{original.delivered_to_name or "N/A"}</td>
+    <td style="padding:8px 12px;border:1px solid #e5e7eb;">{dc_doc.delivered_to_name or "N/A"}</td>
   </tr>
   <tr>
     <td style="padding:8px 12px;border:1px solid #e5e7eb;font-weight:600;">ID Number</td>
-    <td style="padding:8px 12px;border:1px solid #e5e7eb;">{original.delivered_to_id or "N/A"}</td>
+    <td style="padding:8px 12px;border:1px solid #e5e7eb;">{dc_doc.delivered_to_id or "N/A"}</td>
   </tr>
   <tr>
     <td style="padding:8px 12px;border:1px solid #e5e7eb;font-weight:600;">Phone</td>
-    <td style="padding:8px 12px;border:1px solid #e5e7eb;">{original.delivered_to_phone or "N/A"}</td>
+    <td style="padding:8px 12px;border:1px solid #e5e7eb;">{dc_doc.delivered_to_phone or "N/A"}</td>
   </tr>
 </table>
 
@@ -194,3 +218,61 @@ def _send_duplicate_notification(doc_type, doc_name, original):
 		)
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), "Delivery Confirmation: Duplicate Scan Notification Error")
+
+
+def _send_client_notification(doc_type, doc_name, dc_doc):
+	"""Send email notification to the client contact on the scanned document after first confirmation."""
+	try:
+		settings = frappe.get_single("Delivery Confirmation Settings")
+		if not settings.send_notification_to_client:
+			return
+
+		client_email_field = (settings.client_email_field or "").strip()
+		if not client_email_field:
+			return
+
+		client_email = frappe.db.get_value(doc_type, doc_name, client_email_field)
+		if not client_email:
+			return
+
+		scanned_at = frappe.utils.format_datetime(dc_doc.scanned_at) if dc_doc.scanned_at else "N/A"
+
+		subject = (settings.client_notification_subject or "Delivery Confirmed – {doc_name}").format(
+			doc_name=doc_name,
+			doc_type=doc_type,
+		)
+
+		if settings.client_notification_message:
+			message = settings.client_notification_message.format(
+				doc_type=doc_type,
+				doc_name=doc_name,
+				delivered_to_name=dc_doc.delivered_to_name or "N/A",
+				scanned_at=scanned_at,
+			)
+		else:
+			message = f"""
+<p>Dear Customer,</p>
+<p>Your delivery for <strong>{doc_type} &ndash; {doc_name}</strong> has been confirmed.</p>
+<table style="border-collapse:collapse;width:100%;max-width:500px;">
+  <tr>
+    <td style="padding:8px 12px;border:1px solid #e5e7eb;font-weight:600;">Delivered To</td>
+    <td style="padding:8px 12px;border:1px solid #e5e7eb;">{dc_doc.delivered_to_name or "N/A"}</td>
+  </tr>
+  <tr>
+    <td style="padding:8px 12px;border:1px solid #e5e7eb;font-weight:600;">Confirmed At</td>
+    <td style="padding:8px 12px;border:1px solid #e5e7eb;">{scanned_at}</td>
+  </tr>
+</table>
+<p style="margin-top:16px;color:#6b7280;font-size:0.875em;">
+  This notification was sent automatically by Delivery Confirmation.
+</p>
+"""
+
+		frappe.sendmail(
+			recipients=[client_email],
+			subject=subject,
+			message=message,
+			now=True,
+		)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "Delivery Confirmation: Client Notification Error")

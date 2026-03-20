@@ -9,6 +9,7 @@
   "document_type",
   "document_name",
   "status",
+  "scan_count",
   "column_break_1",
   "scanned_by",
   "scanned_at",
@@ -19,7 +20,9 @@
   "number_plate",
   "column_break_2",
   "other_info",
-  "photo"
+  "photo",
+  "section_break_scan_history",
+  "scan_log"
  ],
  "fields": [
   {
@@ -43,6 +46,14 @@
    "label": "Status",
    "options": "First Scan\nDuplicate Scan",
    "read_only": 1
+  },
+  {
+   "fieldname": "scan_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Scan Count",
+   "read_only": 1,
+   "default": "1"
   },
   {
    "fieldname": "column_break_1",
@@ -102,14 +113,26 @@
    "fieldname": "photo",
    "fieldtype": "Attach Image",
    "label": "Photo"
+  },
+  {
+   "fieldname": "section_break_scan_history",
+   "fieldtype": "Section Break",
+   "label": "Scan History"
+  },
+  {
+   "fieldname": "scan_log",
+   "fieldtype": "Table",
+   "label": "Scan Log",
+   "options": "Delivery Confirmation Scan Log",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2026-03-18 00:00:00.000000",
+ "modified": "2026-03-19 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Delivery Confirmation",
  "name": "Delivery Confirmation",
- "naming_rule": "Expression (will translate to a naming series)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

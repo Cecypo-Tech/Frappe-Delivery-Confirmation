@@ -338,7 +338,7 @@
 		<div class="dc-banner red">
 			<div class="icon">🚨</div>
 			<h2>Duplicate Scan Detected</h2>
-			<p>This delivery was already confirmed.</p>
+			<p id="dc-dup-count-msg">This delivery was already confirmed.</p>
 			<div class="dc-doc-ref" id="dc-dup-doc"></div>
 		</div>
 		<div class="dc-card">
@@ -519,6 +519,9 @@
 	function renderDuplicate(c) {
 		document.getElementById("dc-dup-doc").textContent =
 			currentDocType + " — " + currentDocName;
+		const count = c.scan_count || 2;
+		document.getElementById("dc-dup-count-msg").textContent =
+			"This delivery was already confirmed. Total scans: " + count + ".";
 		const rows = [
 			["Confirmed By", c.scanned_by],
 			["Confirmed At", c.scanned_at ? frappe.datetime.str_to_user(c.scanned_at) : null],
