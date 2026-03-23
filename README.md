@@ -6,6 +6,12 @@ Confirm delivery status by scanning a QR code on any mobile device. No login req
 
 ---
 
+### `/delivery` Web Interface
+
+![Delivery endpoint UI](https://i.imgur.com/IPFd7tL.png)
+
+---
+
 ### How It Works
 
 1. A QR code on a physical document (e.g. a KRA eTIMS invoice) is scanned using the built-in camera scanner at `/delivery`.

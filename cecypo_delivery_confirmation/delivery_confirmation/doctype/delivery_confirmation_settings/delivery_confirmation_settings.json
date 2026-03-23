@@ -10,6 +10,7 @@
   "section_break_matching",
   "source_doctype",
   "match_field",
+  "prefetch_name_field",
   "column_break_matching",
   "qr_extract_method",
   "qr_url_param",
@@ -54,6 +55,12 @@
    "fieldtype": "Data",
    "label": "Match Field",
    "description": "Field name in the Source DocType whose value is extracted from the QR (e.g. etr_invoice_number)"
+  },
+  {
+   "fieldname": "prefetch_name_field",
+   "fieldtype": "Data",
+   "label": "Prefetch Name Field",
+   "description": "Optional. Field on the Source DocType whose value is pre-loaded into \"Delivered To (Name)\" when a document is scanned (e.g. customer_name). Leave blank to disable."
   },
   {
    "fieldname": "column_break_matching",

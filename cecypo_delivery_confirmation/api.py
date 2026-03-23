@@ -29,12 +29,26 @@ def lookup_document_by_qr(qr_string):
 			),
 		}
 
-	return {
+	result = {
 		"found": True,
 		"doc_type": settings.source_doctype,
 		"doc_name": doc_name,
 		"matched_value": value,
 	}
+
+	# Fetch prefill value for "Delivered To (Name)" if configured
+	prefetch_field = (settings.prefetch_name_field or "").strip()
+	if prefetch_field:
+		result["prefetch_name"] = frappe.db.get_value(settings.source_doctype, doc_name, prefetch_field) or ""
+
+	# Fetch entity: prefer customer, fall back to supplier
+	for entity_field in ("customer", "supplier"):
+		entity_value = frappe.db.get_value(settings.source_doctype, doc_name, entity_field)
+		if entity_value:
+			result["entity"] = entity_value
+			break
+
+	return result
 
 
 def _extract_qr_value(qr_string, settings):
@@ -123,6 +137,7 @@ def submit_delivery_confirmation(
 	number_plate=None,
 	other_info=None,
 	photo=None,
+	entity=None,
 ):
 	"""Submit a first-time delivery confirmation for a document."""
 	existing = frappe.db.exists(
@@ -147,6 +162,7 @@ def submit_delivery_confirmation(
 	doc.number_plate = number_plate
 	doc.other_info = other_info
 	doc.photo = photo
+	doc.entity = entity
 	doc.append("scan_log", {
 		"scanned_by": frappe.session.user,
 		"scanned_at": now,

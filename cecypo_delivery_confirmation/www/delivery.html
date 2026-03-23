@@ -415,6 +415,7 @@
 	let scanner = null;
 	let currentDocType = null;
 	let currentDocName = null;
+	let currentEntity = null;
 	let uploadedPhotoUrl = null;
 	let photoUploading = false;
 
@@ -482,6 +483,11 @@
 				}
 				currentDocType = r.message.doc_type;
 				currentDocName = r.message.doc_name;
+				currentEntity = r.message.entity || null;
+				// Pre-populate "Delivered To" if a prefetch value was returned
+				const prefetchName = r.message.prefetch_name || "";
+				const nameEl = document.getElementById("dc-name");
+				if (nameEl) nameEl.value = prefetchName;
 				dcCheckStatus();
 			},
 			error: function () {
@@ -615,6 +621,7 @@
 				number_plate:       document.getElementById("dc-plate").value || null,
 				other_info:         document.getElementById("dc-other").value || null,
 				photo:              uploadedPhotoUrl,
+				entity:             currentEntity,
 			},
 			callback: function (r) {
 				if (r.message && r.message.status === "success") {
@@ -635,6 +642,7 @@
 	window.dcReset = function () {
 		currentDocType = null;
 		currentDocName = null;
+		currentEntity = null;
 		uploadedPhotoUrl = null;
 		photoUploading = false;
 		// Reset form fields
