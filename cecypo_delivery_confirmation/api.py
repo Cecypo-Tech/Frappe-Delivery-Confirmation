@@ -85,6 +85,31 @@ def _extract_qr_value(qr_string, settings):
 	return None
 
 
+@frappe.whitelist()
+def get_source_doctype():
+	"""Return the configured source DocType from settings (for desk-side JS caching)."""
+	return frappe.db.get_single_value("Delivery Confirmation Settings", "source_doctype")
+
+
+@frappe.whitelist()
+def get_delivery_status(doc_type, doc_name):
+	"""Read-only status check for desk forms. No side effects."""
+	settings_source = frappe.db.get_single_value("Delivery Confirmation Settings", "source_doctype")
+	if not settings_source or doc_type != settings_source:
+		return None
+
+	result = frappe.db.get_value(
+		"Delivery Confirmation",
+		{"document_type": doc_type, "document_name": doc_name, "status": "First Scan"},
+		["name", "scanned_by", "scanned_at", "delivered_to_name", "scan_count"],
+		as_dict=True,
+	)
+
+	if result:
+		return {"status": "confirmed", "confirmation": result}
+	return {"status": "pending"}
+
+
 @frappe.whitelist(allow_guest=True)
 def get_confirmation_status(doc_type, doc_name):
 	"""

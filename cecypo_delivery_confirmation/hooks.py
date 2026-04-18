@@ -5,6 +5,8 @@ app_description = "Confirm delivery status using a QR code"
 app_email = "support@cecypo.tech"
 app_license = "mit"
 
+app_include_js = ["/assets/cecypo_delivery_confirmation/js/delivery_status.js"]
+
 # Fixtures – imported on bench migrate
 fixtures = [
 	{"dt": "Role", "filters": [["role_name", "=", "Delivery Scanner"]]},
