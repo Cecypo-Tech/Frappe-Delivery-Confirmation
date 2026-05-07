@@ -7,7 +7,7 @@ frappe.ui.form.on("Delivery Confirmation", {
 		if (count > 1) {
 			frm.page.set_indicator(__("Scanned {0}×", [count]), "red");
 		} else {
-			frm.page.set_indicator(__("First Scan"), "green");
+			frm.page.set_indicator(__("Delivered"), "green");
 		}
 	},
 });

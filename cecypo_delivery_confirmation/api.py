@@ -100,7 +100,7 @@ def get_delivery_status(doc_type, doc_name):
 
 	result = frappe.db.get_value(
 		"Delivery Confirmation",
-		{"document_type": doc_type, "document_name": doc_name, "status": "First Scan"},
+		{"document_type": doc_type, "document_name": doc_name, "status": "Delivered"},
 		["name", "scanned_by", "scanned_at", "delivered_to_name", "scan_count"],
 		as_dict=True,
 	)
@@ -119,13 +119,14 @@ def get_confirmation_status(doc_type, doc_name):
 	"""
 	existing_name = frappe.db.get_value(
 		"Delivery Confirmation",
-		{"document_type": doc_type, "document_name": doc_name, "status": "First Scan"},
+		{"document_type": doc_type, "document_name": doc_name, "status": "Delivered"},
 		"name",
 	)
 
 	if existing_name:
 		dc_doc = frappe.get_doc("Delivery Confirmation", existing_name)
 		dc_doc.scan_count = (dc_doc.scan_count or 1) + 1
+		dc_doc.status = "Duplicate Scan"
 		dc_doc.append("scan_log", {
 			"scanned_by": frappe.session.user,
 			"scanned_at": frappe.utils.now_datetime(),
@@ -167,7 +168,7 @@ def submit_delivery_confirmation(
 	"""Submit a first-time delivery confirmation for a document."""
 	existing = frappe.db.exists(
 		"Delivery Confirmation",
-		{"document_type": doc_type, "document_name": doc_name, "status": "First Scan"},
+		{"document_type": doc_type, "document_name": doc_name, "status": "Delivered"},
 	)
 	if existing:
 		frappe.throw(_("This delivery has already been confirmed."))
@@ -177,7 +178,7 @@ def submit_delivery_confirmation(
 	doc = frappe.new_doc("Delivery Confirmation")
 	doc.document_type = doc_type
 	doc.document_name = doc_name
-	doc.status = "First Scan"
+	doc.status = "Delivered"
 	doc.scan_count = 1
 	doc.scanned_by = frappe.session.user  # "Guest" for unauthenticated users
 	doc.scanned_at = now

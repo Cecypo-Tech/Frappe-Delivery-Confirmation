@@ -55,7 +55,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
-   "options": "First Scan\nDuplicate Scan",
+   "options": "Delivered\nDuplicate Scan",
    "read_only": 1
   },
   {
